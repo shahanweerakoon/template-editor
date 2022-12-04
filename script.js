@@ -1,191 +1,113 @@
-const { useState, useEffect } = React;
+window.addEventListener("DOMContentLoaded",() => {
+	const component = new FileUpload(".upload");
+});
 
-const QUOTE_STARTS = [
-  "Conquer",
-  "We are quite simply",
-  "It's never too late to acquire",
-  "You're as big as",
-  "Unlock",
-  "Cherish",
-  "You can always rely on",
-  "Explore",
-  "Seek",
-  "You can always find",
-  "Discover",
-  "Draw wisdom from",
-  "Heal your wounds into",
-  "Dance to",
-  "Replace fear with",
-  "Invoke",
-  "Life is like",
-  "Become",
-  "Never forget",
-  "Make time for",
-  "Fill your cup with",
-  "Embrace the power of",
-  "Embrace the warmth of",
-  "Look inward and see",
-  "Never apologize for",
-  "Rely on",
-  "Open yourself to",
-  "Nothing can erase",
-  "Have reverence for",
-  "The universe is simply",
-  "Breathe in"
-];
+class FileUpload {
+    bubbles = [];
+    isUploading = false;
+    progress = 0;
+    timeout = null;
+    uploadClass = "upload--running";
+    doneClass = "upload--done";
 
-const QUOTE_MIDDLES = [
-  "the miracle of",
-  "encouragement from",
-  "gifts wrapped in",
-  "the riddle that shrouds",
-  "the wonder of",
-  "gratitude for",
-  "the magic invoked by",
-  "oceans within",
-  "the joyous sound of",
-  "a new beginning in",
-  "questions within",
-  "the inner voice of",
-  "the infinite wisdom of",
-  "the holy light within",
-  "the songs of",
-  "kindness entangled with",
-  "appreciation through",
-  "acknowledgement within",
-  "the threads woven between",
-  "compassion through",
-  "the majesty enmeshed in",
-  "the warmth that evelopes",
-  "a joyful voice of",
-  "the impact you have on",
-  "the meaning behind",
-  "the fingerprint of",
-  "the endless horizon of",
-  "your indelible attraction towards",
-  "your appetite for",
-  "the triumphant roar of",
-  "the strength rooted in",
-  "the mystery within",
-  "the intricate tapestry of",
-  "the delicate scent of",
-  "the infinite potential of",
-  "the impression left by"
-];
+    constructor(el) {
+        this.el = document.querySelector(el);
+        this.el?.addEventListener("click",this.upload.bind(this));
+        this.circle = this.el?.querySelector("[data-circle]");
+        this.uploadButton = this.el?.querySelector("[data-upload]");
+    }
+    progressDim() {
+        this.uploadButton.parentElement.setAttribute("aria-hidden", "true");
+    }
+    progressLoop() {
+        // update the progress
+        this.progress += 0.01;
+        this.progressUpdateDisplay();
 
-const QUOTE_ENDS = [
-  "forever and ever.",
-  "a wolf.",
-  "a single acorn.",
-  "truth.",
-  "time.",
-  "thousands of butterflies.",
-  "your stomach.",
-  "shapes.",
-  "the stars.",
-  "the ocean.",
-  "endless galaxies.",
-  "your own divinity.",
-  "your soul.",
-  "a block of cheese.",
-  "carbohydrates.",
-  "curiosity.",
-  "a box of chocolates.",
-  "unexpected possibilities.",
-  "fragile bubbles.",
-  "each precious day.",
-  "epiphanies.",
-  "even the dullest stone.",
-  "the gentle snores of a kitten.",
-  "a cup of tea.",
-  "a cup of coffee.",
-  "melting sunsets.",
-  "fleeting raindrops.",
-  "sticking your hand into a sack of beans.",
-  "petrichor.",
-  "a gentle crackling fire.",
-  "a babbling brook."
-];
+        // spawn a bubble
+        const bubble = document.createElement("div");
+        const duration = Utils.randomFloat(2,3);
+        const brightneess = Utils.randomFloat(0.6,1);
+        const rotate = Utils.randomFloat(-15,15);
+        const size = Utils.randomFloat(1,2);
 
-function random(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-};
+        bubble.classList.add("upload__bubble");
+        bubble.style.setProperty("--dur", `${duration}s`);
+        bubble.style.filter = `brightness(${brightneess})`;
+        bubble.style.transform = `translateX(-50%) rotate(${rotate}deg)`;
+        bubble.style.width = `${size}em`;
+        bubble.style.height = `${size}em`;
+        this.bubbles.push(bubble);
+        this.circle?.appendChild(bubble);
 
-function QuoteFragment({ string, classes }) {
-  const gradientDirs = ["br", "bl", "tl", "tr", "t", "b", "l", "r"];
-  const gradientColors = [
-    "from-yellow-300 via-red-400 to-pink-500",
-    "from-yellow-200 via-green-400 to-indigo-500",
-    "from-blue-300 via-purple-400 to-pink-400",
-    "from-yellow-400 to-red-600",
-    "from-purple-600 to-pink-400",
-    "from-green-300 to-indigo-600",
-    "from-yellow-200 via-yellow-500 to-pink-400",
-    "from-green-300 to-indigo-600",
-    "from-purple-500 to-indigo-200",
-    "from-blue-300 to-indigo-600",
-    "from-red-300 to-indigo-600",
-    "from-red-300 to-pink-600",
-  ];
-  
-  function randomGradient() {
-    return "bg-gradient-to-" + random(gradientDirs) + " " + random(gradientColors);
-  };
-  
-  return(
-    <div className={classes + " sm:w-1/3 rounded h-20 sm:h-40 my-3 p-2 grid place-content-center text-white text-center font-bold " + randomGradient()}>
-      {string}
-    </div>
-  );
-};
+        // loop until finished
+        if (this.progress < 1) {
+            this.timeout = setTimeout(this.progressLoop.bind(this), 50);
+        } else {
+            this.timeout = setTimeout(this.progressDim.bind(this), 500);
+            this.el.classList.add(this.doneClass);
+        }
+    }
+    progressUpdateDisplay(clear) {
+        const progress = this.el.querySelector("[data-progress]");
 
-const App = () => {
-  const [quoteStart, setQuoteStart] = useState();
-  const [quoteMiddle, setQuoteMiddle] = useState();
-  const [quoteEnd, setQuoteEnd] = useState();
-  
-  useEffect(newQuote, []);
-  
-  function newQuote() {
-    setQuoteStart(random(QUOTE_STARTS));
-    setQuoteMiddle(random(QUOTE_MIDDLES));
-    setQuoteEnd(random(QUOTE_ENDS));
-  };
-  
-  function tweetQuote() {
-    const twitterUrl = "https://twitter.com/intent/tweet?text=" + [quoteStart, quoteMiddle, quoteEnd].join(" ") + " - Random Inspo generator tinyurl.com/randoinspo by @_hkly";
-    window.open(twitterUrl, "_blank");
-  };
-  
-  return(
-    <div className="w-3/4">
-      <div className="flex justify-between mb-1 flex-col sm:flex-row">
-        <QuoteFragment string={quoteStart} />
-        <QuoteFragment string={quoteMiddle} classes="sm:mx-3"  />
-        <QuoteFragment string={quoteEnd} />
-      </div>
-      <div className="flex justify-between">
-        <button 
-          onClick={tweetQuote}
-          className="flex group hover:text-pink-400 text-pink-300 font-bold py-2 px-3 rounded text-3xl"
-        >
-          <i className="fab fa-twitter"></i>
-          <div className="inline-block text-sm text-transparent sm:group-hover:text-pink-400 ml-2 leading-7">
-            Tweet Quote
-          </div>
-        </button>
-        <button
-          onClick={newQuote}
-          className="flex group hover:text-pink-400 text-pink-300 font-bold py-2 px-3 rounded text-2xl"
-        >
-          <div className="inline-block text-sm text-transparent sm:group-hover:text-pink-400 mr-2 leading-6">
-            New Quote
-          </div>
-           <i className="fas fa-sync-alt"></i>
-        </button>
-      </div>
-    </div>
-  )
-};
+        if (this.circle && !clear) {
+            const startSize = 13;
+            const enlargeBy = 10;
+            const size = startSize + enlargeBy * this.progress;
 
-ReactDOM.render(<App />, document.getElementById("app"));
+            this.circle.style.width = `${size}em`;
+            this.circle.style.height = `${size}em`;
+        }
+        if (progress) {
+            progress.innerText = clear === true ? "" :`${Math.floor(this.progress * 100)}%`;
+        }
+    }
+    reset() {
+        if (this.isUploading) {
+            while (this.circle.firstChild) {
+                this.circle.removeChild(this.circle.lastChild);
+            }
+            this.circle.removeAttribute("style");
+
+            this.bubbles = [];
+            this.el.classList.remove(this.uploadClass);
+            this.el.classList.remove(this.doneClass);
+            this.isUploading = false;
+            this.progress = 0;
+            this.progressUpdateDisplay(true);
+            this.uploadButton.parentElement.setAttribute("aria-hidden", "false");
+            this.uploadButton.disabled = false;
+            this.uploadButton.textContent = "Upload";
+        }
+    }
+    upload(e) {
+        const { target } = e;
+
+        if (!this.isUploading && target.hasAttribute("data-upload")) {
+            this.isUploading = true;
+            this.el.classList.add(this.uploadClass);
+
+            target.disabled = true;
+            target.textContent = "Uploading…";
+
+            this.progressUpdateDisplay();
+            this.timeout = setTimeout(() => {
+	            if (this.circle) this.circle.style.transitionTimingFunction = "linear";
+
+                this.progressLoop();
+            }, 500);
+        } else if (target.hasAttribute("data-reset")) {
+            this.reset();
+        }
+    }
+}
+
+class Utils {
+	static randomFloat(min = 0,max = 2**32) {
+        const percent = crypto.getRandomValues(new Uint32Array(1))[0] / 2**32;
+        const relativeValue = (max - min) * percent;
+
+        return min + relativeValue;
+    }
+}
